@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Android 史上最强图片面试 | Magic Room</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="最近在做图片相关的需求，总结一下Android图片相关的知识，面试时将这些说  清楚基本就OK啦。感谢开源、Android开发艺术探索、相关优质博文。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android 史上最强图片面试">
+<meta property="og:url" content="http://yoursite.com/2016/11/18/Android史上最强图片面试/index.html">
+<meta property="og:site_name" content="Magic Room">
+<meta property="og:description" content="最近在做图片相关的需求，总结一下Android图片相关的知识，面试时将这些说  清楚基本就OK啦。感谢开源、Android开发艺术探索、相关优质博文。">
+<meta property="og:updated_time" content="2016-11-18T06:09:26.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android 史上最强图片面试">
+<meta name="twitter:description" content="最近在做图片相关的需求，总结一下Android图片相关的知识，面试时将这些说  清楚基本就OK啦。感谢开源、Android开发艺术探索、相关优质博文。">
+  
+    <link rel="alternate" href="/atom.xml" title="Magic Room" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Magic Room</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">热爱生活，敬畏生活，享受生活</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="Flux RSS"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Rechercher"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-Android史上最强图片面试" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/11/18/Android史上最强图片面试/" class="article-date">
+  <time datetime="2016-11-18T06:09:26.000Z" itemprop="datePublished">2016-11-18</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Android/">Android</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Android 史上最强图片面试
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>  <strong>最近在做图片相关的需求，总结一下Android图片相关的知识，面试时将这些说</strong><br>  <strong>清楚基本就OK啦。感谢开源、Android开发艺术探索、相关优质博文。</strong>      </p>
+<a id="more"></a>
+<hr>
+<h4 id="一、图片处理背景知识"><a href="#一、图片处理背景知识" class="headerlink" title="一、图片处理背景知识"></a>一、图片处理背景知识</h4><p>1.移动端运行可用内存限制（很早之前是单应用16MB）<br>2.超过限制引发问题：OOM（内存溢出）<br>3.引发思考：对图片进行压缩处理   </p>
+<h4 id="二、图片压缩分类"><a href="#二、图片压缩分类" class="headerlink" title="二、图片压缩分类"></a>二、图片压缩分类</h4><ul>
+<li><p>尺寸压缩<br>概念：<br>一般是根据控件大小进行比例压缩，被广泛使用的那一套流程，计算合适的采样率再去加载Bitmap到内存      </p>
+<p>涉及知识点：<br>1.压缩流程     </p>
+<pre><code>解码图片边缘拿到图片像素宽高           
+options.inJustDecodeBounds = true;
+计算压缩采样率   
+options.inSampleSize = calculateInSampleSize();     
+根据采样率压缩尺寸再去解码图片得到Bitmap
+options.inJustDecodeBounds = false;
+</code></pre><p>2.inSampleSize的正确计算姿势     </p>
+<pre><code>官方Demo里计算采样率可以满足大部分需求,但长宽比差距很大的图片就会有问题,推荐开源框架UIL里的处理方式
+区分图片的ScaleType
+
+  int scale = 1;
+
+  int widthScale = srcWidth / targetWidth;
+  int heightScale = srcHeight / targetHeight;
+
+  switch (viewScaleType) {
+  case FIT_INSIDE:
+      if (powerOf2Scale) {
+          while (srcWidth / 2 &gt;= targetWidth
+                  || srcHeight / 2 &gt;= targetHeight) { // ||
+              srcWidth /= 2;
+              srcHeight /= 2;
+              scale *= 2;
+          }
+      } else {
+          scale = Math.max(widthScale, heightScale); // max
+      }
+      break;
+  case CROP:
+      if (powerOf2Scale) {
+          while (srcWidth / 2 &gt;= targetWidth
+                  &amp;&amp; srcHeight / 2 &gt;= targetHeight) { // &amp;&amp;
+              srcWidth /= 2;
+              srcHeight /= 2;
+              scale *= 2;
+          }
+      } else {
+          scale = Math.min(widthScale, heightScale); // min
+      }
+      break;
+  }
+
+  if (scale &lt; 1) {
+      scale = 1;
+  }    
+</code></pre><p> 3.拓展话题：ScaleType      </p>
+<pre><code>matrix(默认)   
+center  
+centerCrop
+centerInside     
+
+fitCenter
+fitEnd   
+fitStart   
+fitXY    
+</code></pre><p> 4.误区盲点    </p>
+<pre><code>这种方式不一定会将图片字节大小降下去，有时把一张图片缩小一点点，图片本身所占内存反而增多了
+</code></pre></li>
+<li><p>质量压缩<br>概念：<br>对图片的品质进行压缩，可以明显减少图片所占字节大小，例如微信分享限制缩略图大小不超过32KB    </p>
+<p>压缩方法：     </p>
+<p>  1.读取Bitmap字节大小   </p>
+<pre><code>ByteArrayOutputStream baos = new ByteArrayOutputSream();
+bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);//这里100的话表示不压缩质量
+long length=baos.toByteArray().length;
+</code></pre><p>  2.降低品质进行压缩    </p>
+<p>   上面compress方法第二个参数的取值[1,100]<br>   一般80往下就压不动了，压缩算法不是按区间等分<br>   [80,100]之间较为明显    </p>
+<p>涉及知识点：<br>1.第一个参数区别      </p>
+<pre><code>Bitmap.CompressFormat.PNG
+Bitmap.CompressFormat.JPEG 
+</code></pre><p>2.第二个参数区间及含义   </p>
+</li>
+</ul>
+<h4 id="三、图片色彩样式"><a href="#三、图片色彩样式" class="headerlink" title="三、图片色彩样式"></a>三、图片色彩样式</h4><ul>
+<li><p>ALPHA_8<br>每个像素只占1个字节，只能代表透明度，没有颜色属性</p>
+</li>
+<li><p>ARGB_4444<br>每个像素要2字节，带透明度的颜色，官方不推荐使用了</p>
+</li>
+<li><p>ARGB_8888<br>每个像素要4字节，带透明度的颜色</p>
+</li>
+<li><p>RGB_565<br>每个像素要2字节，不带透明度的颜色</p>
+<p>涉及知识点：</p>
+<p>1.ARGB含义<br>2.数字含义    </p>
+<p>拓展：<br>1.图片放在不同 <code>drawable-*dpi</code>下的区别<br>2.为什么要美术切多套图或一套图？<br>3.<code>mipmap-*dpi</code> 和 <code>drawalbe-*dpi</code>区别    </p>
+</li>
+</ul>
+<h4 id="四、图片缓存"><a href="#四、图片缓存" class="headerlink" title="四、图片缓存"></a>四、图片缓存</h4><ul>
+<li><p>java中四种引用类型   </p>
+<p>1.强引用<br>2.软引用SoftReference<br>3.弱引用WeakReference<br>4.虚引用      </p>
+</li>
+<li><p>古老的方式  </p>
+<p>二级缓存机制<br>  设置两个缓存池，一个强引用，一个软引用<br>  强引用作为一级缓存LinkedHashMap<string,bitmap>重写removeEldestEntry方法，删除最不常用对象   </string,bitmap></p>
+</li>
+<li><p>Android 3.0后的升级    </p>
+<p>1.实践中软引用没啥卵用 </p>
+<p>  <code>官方文档</code>   </p>
+<pre><code>在实践中，软引用在缓存的处理上是没有效率的。运行时没有足够的信息用于
+判断哪些引用要清理回收还有哪些要保存。最致命的，当同时面对清理软引用
+和增加堆内存两种选择时它不知道做什么。对于你应用的每一个引用都缺乏有
+价值的信息，这一点限制了软引用让它的可用性十分有限。过早清理回收的引
+用导致了无必要的工作,而那些过晚清理掉的引用又浪费了内存。    
+</code></pre><p>2.引入LruCache   </p>
+<p>  近期最少使用算法，原理同LinkedHashMap逻辑，使用上要重写<code>sizeOf()</code>方法<br>  指定缓存计算大小的单位是字节，创建LruCache时传入总值一般为Runtime可用<br>  内存的1/8.    </p>
+</li>
+<li><p>常说的三级缓存   </p>
+<p>1.流程    </p>
+<pre><code>加载一张图片，先从内存缓存中找，没有从磁盘缓存中找，再没有从网络下载   
+下载完后在两个缓存区分别保存一份，如果磁盘中有，就直接在内存缓存中保
+存一份    
+</code></pre><p>2.使用   </p>
+<pre><code>内存缓存 -&gt; LruCache    
+磁盘缓存 -&gt; DiskLruCache   
+</code></pre><p>3.网络异步下载,Handler切换线程，在UI线程设置   </p>
+<p>4.优势：   </p>
+<pre><code>1.为用户节省流量  
+2.响应速度快，内存&gt;磁盘&gt;下载    
+</code></pre></li>
+<li><p>自己打造ImageLoader   </p>
+<p>1.图片的同步加载<br>2.图片的异步加载<br>3.图片的压缩处理<br>4.内存缓存<br>5.磁盘缓存<br>6.网络下载图片(HttpUrlConnection 或网络框架 解耦和可配置)    </p>
+</li>
+<li><p>拓展    </p>
+<p>在列表风格的控件加载图片时，通过监听滑动事件，当状态为Fling的时候停止加载<br>在停下来的时候再去加载（照片墙 缓存策略使用 LIFO ）<br>开启硬件加速 <code>android:hardwareAccelerated=&quot;true&quot;</code></p>
+</li>
+</ul>
+<h4 id="五、开源框架"><a href="#五、开源框架" class="headerlink" title="五、开源框架"></a>五、开源框架</h4><ul>
+<li><p>使用原则   </p>
+<p><code>不要使用大而全的库，要选择专一功能的</code><br><code>不要使用已经停止维护的</code><br><code>调研包体大小和方法数，尽量轻量级</code><br><code>二次封装，便于库的切换与调用</code></p>
+</li>
+<li><p>截至2016.10.22开源库对比   </p>
+<p><code>UniversalImageLoader</code><br>老牌著名库，作者停止维护了，别用了   </p>
+<p><code>xUtils3</code><br>典型的大而全的库，依赖注入，DB，网络，图片，别用了   </p>
+<p><code>Volley</code><br>网络框架，同时也有和UIL类似的ImageLoader，包体和方法有限制可以采用<br>但不支持加载本地图片，要自己修改，功能不强大       </p>
+<p><code>Picasso</code><br>JakeWharton大神的库，体积较小，无本地缓存，可结合Square全家桶OkHttp    </p>
+<p><code>Glide</code><br>Google推荐的图片库,支持GIF、WebP、Video多种媒体格式，网络配置可修改<br>（默认UrlConnection 可结合Volley/OkHttp ）色彩格式默认RGB565   </p>
+<p><code>Fresco</code><br>FaceBook搞的大东西，屌炸天但体积庞大，分分钟65K<br>可参见廖祜秋大神的Fresco中文站点学习   </p>
+</li>
+<li><p>总结  </p>
+<p>作为一名Google粉，目前项目以开发SDK为主，别想了，拥抱Glide…</p>
+</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2016/11/18/Android史上最强图片面试/" data-id="ciy1109ch00041d0vuey0elh9" class="article-share-link">Partager</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Android/">Android</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2016/11/18/home/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Ancien</strong>
+      <div class="article-nav-title">我的新家</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Catégories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/随笔/">随笔</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Mot-clés</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Android/">Android</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/随笔/">随笔</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Nuage de mot-clés</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Android/" style="font-size: 20px;">Android</a> <a href="/tags/随笔/" style="font-size: 10px;">随笔</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Articles récents</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2016/11/18/Android史上最强图片面试/">Android 史上最强图片面试</a>
+          </li>
+        
+          <li>
+            <a href="/2016/11/18/home/">我的新家</a>
+          </li>
+        
+          <li>
+            <a href="/2016/11/18/Android软键盘的研究/">Android 软键盘的研究</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2017 magical_xu<br>
+      Propulsé by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>
